@@ -28,9 +28,9 @@ int main(void)
 
     // LESSON 05: Define the camera to look into our 3d world (Next chapter will be explain more thoroughly)
     Camera3D camera = { 0 };
-    camera.position = (Vector3){ 1.f, 0.5f, 1.0f };  // Camera position
-    camera.target = (Vector3){ 0.0f, 1.8f, 0.0f };      // Camera looking at point
-    camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
+    camera.position = Vector3{ 1.f, 0.5f, 1.0f };  // Camera position
+    camera.target = Vector3{ 0.0f, 1.8f, 0.0f };      // Camera looking at point
+    camera.up = Vector3{ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
     camera.fovy = 45.0f;                                // Camera field-of-view Y
     camera.projection = CAMERA_PERSPECTIVE;             // Camera mode type
 
@@ -39,7 +39,7 @@ int main(void)
     Image imMap = LoadImage("MazeResources/cubicmap.png");      // Load cubicmap image (RAM)
     Texture2D cubicmap = LoadTextureFromImage(imMap);       // Convert image to texture to display (VRAM)
 
-    Mesh mesh = GenMeshCubicmapV2(imMap, (Vector3) { 1.0f, 1.0f, 1.0f });
+    Mesh mesh = GenMeshCubicmapV2(imMap,Vector3 { 1.0f, 1.0f, 1.0f });
     Model model = LoadModelFromMesh(mesh);
 
     // NOTE: By default each cube is mapped to one part of texture atlas
@@ -55,8 +55,8 @@ int main(void)
     //LESSON 07: Loading the castle model Primer Objeto a Mostrar
     Model modelCastle = LoadModel("MazeResources/models/obj/castle.obj");                 // Load model
     Texture2D textureCastle = LoadTexture("MazeResources/models/obj/castle_diffuse.png"); // Load model texture
-    modelCastle.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = textureCastle;            // Set map diffuse texture
-    Vector3 modelposition = { 3.0f, 0.0f, 3.0f };                    // Set model position
+    //modelCastle.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = textureCastle;            // Set map diffuse texture
+    //Vector3 modelposition = { 3.0f, 0.0f, 3.0f };                    // Set model position
 
     BoundingBox bounds = GetMeshBoundingBox(model.meshes[0]);   // Set model bounds
 
@@ -96,7 +96,7 @@ int main(void)
             {
                 if ((mapPixels[y * cubicmap.width + x].r == 255) &&       // Collision: white pixel, only check R channel
                     (CheckCollisionCircleRec(playerPos, playerRadius,
-                        (Rectangle) {
+                        Rectangle {
                     mapPosition.x - 0.5f + x, mapPosition.z - 0.5f + y, 1.0f, 1.0f
                 })))
                 {
@@ -150,9 +150,14 @@ int main(void)
 
 // Generate a cubes mesh from pixel data
 // NOTE: Vertex data is uploaded to GPU
-Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
+Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize, Model modelObj)
 {
 #define COLOR_EQUAL(col1, col2) ((col1.r == col2.r)&&(col1.g == col2.g)&&(col1.b == col2.b)&&(col1.a == col2.a))
+
+    Model modelCastle = LoadModel("MazeResources/models/obj/castle.obj");                 // Load model
+    Texture2D textureCastle = LoadTexture("MazeResources/models/obj/castle_diffuse.png"); // Load model texture
+    modelCastle.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = textureCastle;            // Set map diffuse texture
+    //Vector3 modelposition = { 3.0f, 0.0f, 3.0f };                    // Set model position
 
     Mesh mesh = { 0 };
 
@@ -198,48 +203,49 @@ Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
     float calc1 = (float)0.5f / texAmount;
     float calc2 = (texAmount - 1) - (numTex % texAmount);
 
+    /*
     RectangleF rightTexUV = {calc2*0.5f, calc2 * 0.5f, calc1, calc1 };
     RectangleF leftTexUV = { calc1+ calc2 * 0.5f, calc2 * 0.5f, calc1, calc1 };
     RectangleF frontTexUV = { calc2 * 0.5f, calc2 * 0.5f, calc1, calc1 };
     RectangleF backTexUV = { calc1, calc2 * 0.5f, calc1, calc1 };
     RectangleF topTexUV = { calc2 * 0.5f, calc1+ calc2 * 0.5f, calc1, calc1 };
     RectangleF bottomTexUV = { calc1+ calc2 * 0.5f, calc1+ calc2 * 0.5f, calc1, calc1 };
+    */
 
-    /*
     RectangleF rightTexUV = { 0.0f, 0.0f, 0.25f, 0.25f };
     RectangleF leftTexUV = { 0.25f, 0.0f, 0.25f, 0.25f };
     RectangleF frontTexUV = { 0.0f, 0.0f, 0.25f, 0.25f };
     RectangleF backTexUV = { 0.25f, 0.0f, 0.25f, 0.25f };
     RectangleF topTexUV = { 0.0f, 0.25f, 0.25f, 0.25f };
     RectangleF bottomTexUV = { 0.25f, 0.25f, 0.25f, 0.25f };
-    */
     
 
     /*
-    RectangleF rightTexUV = { 0.5f, 0.0f, 0.25f, 0.25f };
-    RectangleF leftTexUV = { 0.75f, 0.0f, 0.25f, 0.25f };
-    RectangleF frontTexUV = { 0.5f, 0.0f, 0.25f, 0.25f };
-    RectangleF backTexUV = { 0.75f, 0.0f, 0.25f, 0.25f };
-    RectangleF topTexUV = { 0.5f, 0.25f, 0.25f, 0.25f };
-    RectangleF bottomTexUV = { 0.75f, 0.25f, 0.25f, 0.25f };
-    */
+    //si es b1
+    rightTexUV = { 0.5f, 0.0f, 0.25f, 0.25f };
+    leftTexUV = { 0.75f, 0.0f, 0.25f, 0.25f };
+    frontTexUV = { 0.5f, 0.0f, 0.25f, 0.25f };
+    backTexUV = { 0.75f, 0.0f, 0.25f, 0.25f };
+    topTexUV = { 0.5f, 0.25f, 0.25f, 0.25f };
+    bottomTexUV = { 0.75f, 0.25f, 0.25f, 0.25f };
+    
 
-    /*
-    RectangleF rightTexUV = { 0.5f, 0.5f, 0.25f, 0.25f };
-    RectangleF leftTexUV = { 0.75f, 0.5f, 0.25f, 0.25f };
-    RectangleF frontTexUV = { 0.5f, 0.5f, 0.25f, 0.25f };
-    RectangleF backTexUV = { 0.75f, 0.5f, 0.25f, 0.25f };
-    RectangleF topTexUV = { 0.5f, 0.75f, 0.25f, 0.25f };
-    RectangleF bottomTexUV = { 0.75f, 0.75f, 0.25f, 0.25f };
-    */
+    // si es b2
+    rightTexUV = { 0.5f, 0.5f, 0.25f, 0.25f };
+    leftTexUV = { 0.75f, 0.5f, 0.25f, 0.25f };
+    frontTexUV = { 0.5f, 0.5f, 0.25f, 0.25f };
+    backTexUV = { 0.75f, 0.5f, 0.25f, 0.25f };
+    topTexUV = { 0.5f, 0.75f, 0.25f, 0.25f };
+    bottomTexUV = { 0.75f, 0.75f, 0.25f, 0.25f };
+    
 
-    /*
-    RectangleF rightTexUV = { 0.0f, 0.5f, 0.25f, 0.25f };
-    RectangleF leftTexUV = { 0.25f, 0.5f, 0.25f, 0.25f };
-    RectangleF frontTexUV = { 0.0f, 0.5f, 0.25f, 0.25f };
-    RectangleF backTexUV = { 0.25f, 0.5f, 0.25f, 0.25f };
-    RectangleF topTexUV = { 0.0f, 0.75f, 0.25f, 0.25f };
-    RectangleF bottomTexUV = { 0.25f, 0.75f, 0.25f, 0.25f };
+    // si es b3
+    rightTexUV = { 0.0f, 0.5f, 0.25f, 0.25f };
+    leftTexUV = { 0.25f, 0.5f, 0.25f, 0.25f };
+    frontTexUV = { 0.0f, 0.5f, 0.25f, 0.25f };
+    backTexUV = { 0.25f, 0.5f, 0.25f, 0.25f };
+    topTexUV = { 0.0f, 0.75f, 0.25f, 0.25f };
+    bottomTexUV = { 0.25f, 0.75f, 0.25f, 0.25f };
     */
 
     for (int z = 0; z < mapHeight; ++z)
@@ -255,6 +261,51 @@ Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
             Vector3 v6 = { w * (x - 0.5f), 0, h * (z - 0.5f) };
             Vector3 v7 = { w * (x - 0.5f), 0, h * (z + 0.5f) };
             Vector3 v8 = { w * (x + 0.5f), 0, h * (z + 0.5f) };
+
+
+            switch (pixels[z * cubicmap.width + x].b) 
+            {
+            case 0:
+                rightTexUV = { 0.0f, 0.0f, 0.25f, 0.25f };
+                leftTexUV = { 0.25f, 0.0f, 0.25f, 0.25f };
+                frontTexUV = { 0.0f, 0.0f, 0.25f, 0.25f };
+                backTexUV = { 0.25f, 0.0f, 0.25f, 0.25f };
+                topTexUV = { 0.0f, 0.25f, 0.25f, 0.25f };
+                bottomTexUV = { 0.25f, 0.25f, 0.25f, 0.25f };
+                break;
+
+            case 1:
+                rightTexUV = { 0.5f, 0.0f, 0.25f, 0.25f };
+                leftTexUV = { 0.75f, 0.0f, 0.25f, 0.25f };
+                frontTexUV = { 0.5f, 0.0f, 0.25f, 0.25f };
+                backTexUV = { 0.75f, 0.0f, 0.25f, 0.25f };
+                topTexUV = { 0.5f, 0.25f, 0.25f, 0.25f };
+                bottomTexUV = { 0.75f, 0.25f, 0.25f, 0.25f };
+                break;
+
+            case 2:
+                rightTexUV = { 0.5f, 0.5f, 0.25f, 0.25f };
+                leftTexUV = { 0.75f, 0.5f, 0.25f, 0.25f };
+                frontTexUV = { 0.5f, 0.5f, 0.25f, 0.25f };
+                backTexUV = { 0.75f, 0.5f, 0.25f, 0.25f };
+                topTexUV = { 0.5f, 0.75f, 0.25f, 0.25f };
+                bottomTexUV = { 0.75f, 0.75f, 0.25f, 0.25f };
+                break;
+
+            case 3:
+                rightTexUV = { 0.0f, 0.5f, 0.25f, 0.25f };
+                leftTexUV = { 0.25f, 0.5f, 0.25f, 0.25f };
+                frontTexUV = { 0.0f, 0.5f, 0.25f, 0.25f };
+                backTexUV = { 0.25f, 0.5f, 0.25f, 0.25f };
+                topTexUV = { 0.0f, 0.75f, 0.25f, 0.25f };
+                bottomTexUV = { 0.25f, 0.75f, 0.25f, 0.25f };
+                break;
+
+            default:
+                break;
+            }
+
+
 
             // We check pixel color to be WHITE -> draw full cube
             if ((pixels[z * cubicmap.width + x].r == 255))
@@ -280,12 +331,12 @@ Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
                 mapNormals[nCounter + 5] = n3;
                 nCounter += 6;
 
-                mapTexcoords[tcCounter] = (Vector2){ topTexUV.x, topTexUV.y };
-                mapTexcoords[tcCounter + 1] = (Vector2){ topTexUV.x, topTexUV.y + topTexUV.height };
-                mapTexcoords[tcCounter + 2] = (Vector2){ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
-                mapTexcoords[tcCounter + 3] = (Vector2){ topTexUV.x, topTexUV.y };
-                mapTexcoords[tcCounter + 4] = (Vector2){ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
-                mapTexcoords[tcCounter + 5] = (Vector2){ topTexUV.x + topTexUV.width, topTexUV.y };
+                mapTexcoords[tcCounter] = Vector2{ topTexUV.x, topTexUV.y };
+                mapTexcoords[tcCounter + 1] = Vector2{ topTexUV.x, topTexUV.y + topTexUV.height };
+                mapTexcoords[tcCounter + 2] = Vector2{ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
+                mapTexcoords[tcCounter + 3] = Vector2{ topTexUV.x, topTexUV.y };
+                mapTexcoords[tcCounter + 4] = Vector2{ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
+                mapTexcoords[tcCounter + 5] = Vector2{ topTexUV.x + topTexUV.width, topTexUV.y };
                 tcCounter += 6;
 
                 // Define bottom triangles (2 tris, 6 vertex --> v6-v8-v7, v6-v5-v8)
@@ -305,12 +356,12 @@ Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
                 mapNormals[nCounter + 5] = n4;
                 nCounter += 6;
 
-                mapTexcoords[tcCounter] = (Vector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
-                mapTexcoords[tcCounter + 1] = (Vector2){ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
-                mapTexcoords[tcCounter + 2] = (Vector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y + bottomTexUV.height };
-                mapTexcoords[tcCounter + 3] = (Vector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
-                mapTexcoords[tcCounter + 4] = (Vector2){ bottomTexUV.x, bottomTexUV.y };
-                mapTexcoords[tcCounter + 5] = (Vector2){ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
+                mapTexcoords[tcCounter] = Vector2{ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
+                mapTexcoords[tcCounter + 1] = Vector2{ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
+                mapTexcoords[tcCounter + 2] = Vector2{ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y + bottomTexUV.height };
+                mapTexcoords[tcCounter + 3] = Vector2{ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
+                mapTexcoords[tcCounter + 4] = Vector2{ bottomTexUV.x, bottomTexUV.y };
+                mapTexcoords[tcCounter + 5] = Vector2{ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
                 tcCounter += 6;
 
                 // Checking cube on bottom of current cube
@@ -334,12 +385,12 @@ Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
                     mapNormals[nCounter + 5] = n6;
                     nCounter += 6;
 
-                    mapTexcoords[tcCounter] = (Vector2){ frontTexUV.x, frontTexUV.y };
-                    mapTexcoords[tcCounter + 1] = (Vector2){ frontTexUV.x, frontTexUV.y + frontTexUV.height };
-                    mapTexcoords[tcCounter + 2] = (Vector2){ frontTexUV.x + frontTexUV.width, frontTexUV.y };
-                    mapTexcoords[tcCounter + 3] = (Vector2){ frontTexUV.x + frontTexUV.width, frontTexUV.y };
-                    mapTexcoords[tcCounter + 4] = (Vector2){ frontTexUV.x, frontTexUV.y + frontTexUV.height };
-                    mapTexcoords[tcCounter + 5] = (Vector2){ frontTexUV.x + frontTexUV.width, frontTexUV.y + frontTexUV.height };
+                    mapTexcoords[tcCounter] = Vector2{ frontTexUV.x, frontTexUV.y };
+                    mapTexcoords[tcCounter + 1] = Vector2{ frontTexUV.x, frontTexUV.y + frontTexUV.height };
+                    mapTexcoords[tcCounter + 2] = Vector2{ frontTexUV.x + frontTexUV.width, frontTexUV.y };
+                    mapTexcoords[tcCounter + 3] = Vector2{ frontTexUV.x + frontTexUV.width, frontTexUV.y };
+                    mapTexcoords[tcCounter + 4] = Vector2{ frontTexUV.x, frontTexUV.y + frontTexUV.height };
+                    mapTexcoords[tcCounter + 5] = Vector2{ frontTexUV.x + frontTexUV.width, frontTexUV.y + frontTexUV.height };
                     tcCounter += 6;
                 }
 
@@ -364,12 +415,12 @@ Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
                     mapNormals[nCounter + 5] = n5;
                     nCounter += 6;
 
-                    mapTexcoords[tcCounter] = (Vector2){ backTexUV.x + backTexUV.width, backTexUV.y };
-                    mapTexcoords[tcCounter + 1] = (Vector2){ backTexUV.x, backTexUV.y + backTexUV.height };
-                    mapTexcoords[tcCounter + 2] = (Vector2){ backTexUV.x + backTexUV.width, backTexUV.y + backTexUV.height };
-                    mapTexcoords[tcCounter + 3] = (Vector2){ backTexUV.x + backTexUV.width, backTexUV.y };
-                    mapTexcoords[tcCounter + 4] = (Vector2){ backTexUV.x, backTexUV.y };
-                    mapTexcoords[tcCounter + 5] = (Vector2){ backTexUV.x, backTexUV.y + backTexUV.height };
+                    mapTexcoords[tcCounter] = Vector2{ backTexUV.x + backTexUV.width, backTexUV.y };
+                    mapTexcoords[tcCounter + 1] = Vector2{ backTexUV.x, backTexUV.y + backTexUV.height };
+                    mapTexcoords[tcCounter + 2] = Vector2{ backTexUV.x + backTexUV.width, backTexUV.y + backTexUV.height };
+                    mapTexcoords[tcCounter + 3] = Vector2{ backTexUV.x + backTexUV.width, backTexUV.y };
+                    mapTexcoords[tcCounter + 4] = Vector2{ backTexUV.x, backTexUV.y };
+                    mapTexcoords[tcCounter + 5] = Vector2{ backTexUV.x, backTexUV.y + backTexUV.height };
                     tcCounter += 6;
                 }
 
@@ -394,12 +445,12 @@ Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
                     mapNormals[nCounter + 5] = n1;
                     nCounter += 6;
 
-                    mapTexcoords[tcCounter] = (Vector2){ rightTexUV.x, rightTexUV.y };
-                    mapTexcoords[tcCounter + 1] = (Vector2){ rightTexUV.x, rightTexUV.y + rightTexUV.height };
-                    mapTexcoords[tcCounter + 2] = (Vector2){ rightTexUV.x + rightTexUV.width, rightTexUV.y };
-                    mapTexcoords[tcCounter + 3] = (Vector2){ rightTexUV.x + rightTexUV.width, rightTexUV.y };
-                    mapTexcoords[tcCounter + 4] = (Vector2){ rightTexUV.x, rightTexUV.y + rightTexUV.height };
-                    mapTexcoords[tcCounter + 5] = (Vector2){ rightTexUV.x + rightTexUV.width, rightTexUV.y + rightTexUV.height };
+                    mapTexcoords[tcCounter] = Vector2{ rightTexUV.x, rightTexUV.y };
+                    mapTexcoords[tcCounter + 1] = Vector2{ rightTexUV.x, rightTexUV.y + rightTexUV.height };
+                    mapTexcoords[tcCounter + 2] = Vector2{ rightTexUV.x + rightTexUV.width, rightTexUV.y };
+                    mapTexcoords[tcCounter + 3] = Vector2{ rightTexUV.x + rightTexUV.width, rightTexUV.y };
+                    mapTexcoords[tcCounter + 4] = Vector2{ rightTexUV.x, rightTexUV.y + rightTexUV.height };
+                    mapTexcoords[tcCounter + 5] = Vector2{ rightTexUV.x + rightTexUV.width, rightTexUV.y + rightTexUV.height };
                     tcCounter += 6;
                 }
 
@@ -424,12 +475,12 @@ Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
                     mapNormals[nCounter + 5] = n2;
                     nCounter += 6;
 
-                    mapTexcoords[tcCounter] = (Vector2){ leftTexUV.x, leftTexUV.y };
-                    mapTexcoords[tcCounter + 1] = (Vector2){ leftTexUV.x + leftTexUV.width, leftTexUV.y + leftTexUV.height };
-                    mapTexcoords[tcCounter + 2] = (Vector2){ leftTexUV.x + leftTexUV.width, leftTexUV.y };
-                    mapTexcoords[tcCounter + 3] = (Vector2){ leftTexUV.x, leftTexUV.y };
-                    mapTexcoords[tcCounter + 4] = (Vector2){ leftTexUV.x, leftTexUV.y + leftTexUV.height };
-                    mapTexcoords[tcCounter + 5] = (Vector2){ leftTexUV.x + leftTexUV.width, leftTexUV.y + leftTexUV.height };
+                    mapTexcoords[tcCounter] = Vector2{ leftTexUV.x, leftTexUV.y };
+                    mapTexcoords[tcCounter + 1] = Vector2{ leftTexUV.x + leftTexUV.width, leftTexUV.y + leftTexUV.height };
+                    mapTexcoords[tcCounter + 2] = Vector2{ leftTexUV.x + leftTexUV.width, leftTexUV.y };
+                    mapTexcoords[tcCounter + 3] = Vector2{ leftTexUV.x, leftTexUV.y };
+                    mapTexcoords[tcCounter + 4] = Vector2{ leftTexUV.x, leftTexUV.y + leftTexUV.height };
+                    mapTexcoords[tcCounter + 5] = Vector2{ leftTexUV.x + leftTexUV.width, leftTexUV.y + leftTexUV.height };
                     tcCounter += 6;
                 }
             }
@@ -455,12 +506,12 @@ Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
                 mapNormals[nCounter + 5] = n4;
                 nCounter += 6;
 
-                mapTexcoords[tcCounter] = (Vector2){ topTexUV.x, topTexUV.y };
-                mapTexcoords[tcCounter + 1] = (Vector2){ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
-                mapTexcoords[tcCounter + 2] = (Vector2){ topTexUV.x, topTexUV.y + topTexUV.height };
-                mapTexcoords[tcCounter + 3] = (Vector2){ topTexUV.x, topTexUV.y };
-                mapTexcoords[tcCounter + 4] = (Vector2){ topTexUV.x + topTexUV.width, topTexUV.y };
-                mapTexcoords[tcCounter + 5] = (Vector2){ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
+                mapTexcoords[tcCounter] = Vector2{ topTexUV.x, topTexUV.y };
+                mapTexcoords[tcCounter + 1] = Vector2{ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
+                mapTexcoords[tcCounter + 2] = Vector2{ topTexUV.x, topTexUV.y + topTexUV.height };
+                mapTexcoords[tcCounter + 3] = Vector2{ topTexUV.x, topTexUV.y };
+                mapTexcoords[tcCounter + 4] = Vector2{ topTexUV.x + topTexUV.width, topTexUV.y };
+                mapTexcoords[tcCounter + 5] = Vector2{ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
                 tcCounter += 6;
 
                 // Define bottom triangles (2 tris, 6 vertex --> v6-v8-v7, v6-v5-v8)
@@ -480,14 +531,16 @@ Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
                 mapNormals[nCounter + 5] = n3;
                 nCounter += 6;
 
-                mapTexcoords[tcCounter] = (Vector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
-                mapTexcoords[tcCounter + 1] = (Vector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y + bottomTexUV.height };
-                mapTexcoords[tcCounter + 2] = (Vector2){ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
-                mapTexcoords[tcCounter + 3] = (Vector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
-                mapTexcoords[tcCounter + 4] = (Vector2){ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
-                mapTexcoords[tcCounter + 5] = (Vector2){ bottomTexUV.x, bottomTexUV.y };
+                mapTexcoords[tcCounter] = Vector2{ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
+                mapTexcoords[tcCounter + 1] = Vector2{ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y + bottomTexUV.height };
+                mapTexcoords[tcCounter + 2] = Vector2{ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
+                mapTexcoords[tcCounter + 3] = Vector2{ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
+                mapTexcoords[tcCounter + 4] = Vector2{ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
+                mapTexcoords[tcCounter + 5] = Vector2{ bottomTexUV.x, bottomTexUV.y };
                 tcCounter += 6;
             }
+
+
         }
     }
 
