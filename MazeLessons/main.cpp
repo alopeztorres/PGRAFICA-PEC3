@@ -11,9 +11,49 @@
 #include "raylib.h"
 #include "raymath.h" 
 #include <stdlib.h>           // Required for: free()
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <vector>
+
+struct ObjDetails
+{
+    int modelType;
+    Vector3 position;
+    bool collider;
+    bool exit;
+};
+
+struct Prop
+{
+    Model model;
+    Texture2D text;
+};
+
+
+std::vector<Prop*> propList;
+std::vector<ObjDetails*> objList;
 
 //Prototipo del metodo
 Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize);
+
+void AddObj(ObjDetails* props)
+{
+    objList.push_back(props);
+}
+
+void AddProp(Prop* prop)
+{
+    propList.push_back(prop);
+}
+
+void RenderProps() 
+{
+    for (int i = 0; i < objList.size(); i++)
+    {
+        DrawModel(propList[objList[i]->modelType]->model, objList[i]->position, 0.02f, WHITE);        // Draw 3d model with texture
+    }
+}
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
@@ -23,6 +63,16 @@ int main(void)
     //--------------------------------------------------------------------------------------
     const int screenWidth = 1020;
     const int screenHeight = 800;
+
+    const int MaxObjs = 1;
+
+   // Prop objs[] = { MaxObjs };
+   // Prop objs = Prop();
+    //Prop objs[] = { LoadModel("MazeResources/models/obj/castle.obj"),LoadTexture("MazeResources/models/obj/castle_diffuse.png") };
+    //objs.model = LoadModel("MazeResources/models/obj/castle.obj");                 // Load model
+    //objs.text = LoadTexture("MazeResources/models/obj/castle_diffuse.png"); // Load model texture
+   
+
 
     InitWindow(screenWidth, screenHeight, "CHALLENGE 03: FIRST PERSON MAZE");
 
@@ -53,8 +103,19 @@ int main(void)
     Vector3 mapPosition = { 0.0f, 0.0f, 0.0f };  // Set model position
 
     //LESSON 07: Loading the castle model Primer Objeto a Mostrar
-    Model modelCastle = LoadModel("MazeResources/models/obj/castle.obj");                 // Load model
-    Texture2D textureCastle = LoadTexture("MazeResources/models/obj/castle_diffuse.png"); // Load model texture
+    Prop* castle = new Prop;
+    castle->model = LoadModel("MazeResources/models/obj/castle.obj");
+    castle->text = LoadTexture("MazeResources/models/obj/castle_diffuse.png");
+    castle->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = castle->text;
+    AddProp(castle);
+
+    Prop* house = new Prop;
+    house->model = LoadModel("MazeResources/models/obj/house.obj");
+    house->text = LoadTexture("MazeResources/models/obj/house_diffuse.png");
+    house->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = house->text;
+    AddProp(house);
+    //Model modelCastle = LoadModel("MazeResources/models/obj/castle.obj");                 // Load model
+    //Texture2D textureCastle = LoadTexture("MazeResources/models/obj/castle_diffuse.png"); // Load model texture
     //modelCastle.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = textureCastle;            // Set map diffuse texture
     //Vector3 modelposition = { 3.0f, 0.0f, 3.0f };                    // Set model position
 
@@ -106,6 +167,19 @@ int main(void)
             }
         }
 
+        for (int i = 0; i < objList.size(); i++)
+        {
+            if ((objList[i]->collider) &&       // Collision: white pixel, only check R channel
+                (CheckCollisionCircleRec(playerPos, playerRadius,
+                    Rectangle{
+                objList[i]->position.x - 0.5f, objList[i]->position.z - 0.5f, 1.0f, 1.0f
+                    })))
+            {
+                // Collision detected, reset camera position
+                camera.position = oldCamPos;
+            }
+        }
+
         //----------------------------------------------------------------------------------
 
          // Draw
@@ -121,6 +195,7 @@ int main(void)
 
             // LESSON07: Draw Model
             //DrawModel(modelCastle, modelposition, 0.02f, WHITE);        // Draw 3d model with texture
+            RenderProps();
 
         EndMode3D();
 
@@ -128,6 +203,11 @@ int main(void)
         DrawText("First person camera default controls:", 20, 20, 10, WHITE);
         DrawText("- Move with keys: W, A, S, D", 40, 40, 10, WHITE);
         DrawText("- Mouse move to look around", 40, 60, 10, WHITE);
+        for (int i = 0; i < objList.size(); i++)
+        {
+            DrawText(std::to_string(objList[i]->modelType).c_str(), 40, 80+(i*20), 10, WHITE);
+        }
+        
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -150,14 +230,19 @@ int main(void)
 
 // Generate a cubes mesh from pixel data
 // NOTE: Vertex data is uploaded to GPU
-Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize, Model modelObj)
+Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
 {
 #define COLOR_EQUAL(col1, col2) ((col1.r == col2.r)&&(col1.g == col2.g)&&(col1.b == col2.b)&&(col1.a == col2.a))
 
-    Model modelCastle = LoadModel("MazeResources/models/obj/castle.obj");                 // Load model
-    Texture2D textureCastle = LoadTexture("MazeResources/models/obj/castle_diffuse.png"); // Load model texture
-    modelCastle.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = textureCastle;            // Set map diffuse texture
+
+    
+    //Model modelCastle = LoadModel("MazeResources/models/obj/castle.obj");                 // Load model
+    //Texture2D textureCastle = LoadTexture("MazeResources/models/obj/castle_diffuse.png"); // Load model texture
+    //modelCastle.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = textureCastle;            // Set map diffuse texture
     //Vector3 modelposition = { 3.0f, 0.0f, 3.0f };                    // Set model position
+
+
+    
 
     Mesh mesh = { 0 };
 
@@ -305,7 +390,29 @@ Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize, Model modelObj)
                 break;
             }
 
+            if ((pixels[z * cubicmap.width + x].r == 128))
+            {
+                ObjDetails *objList = new ObjDetails;
+                bool flag = false;
+                switch (pixels[z * cubicmap.width + x].g)
+                {
+                case 1:
+                    objList->modelType = 0;
+                    objList->position = { (float)x,0,(float)z };
+                    objList->collider = true;
+                    flag = true;
+                    break;
 
+                case 2:
+                    objList->modelType = 1;
+                    objList->position = { (float)x,0,(float)z };
+                    objList->collider = false;
+                    flag = true;
+                    break;
+                }
+                if(flag)
+                AddObj(objList);
+            }
 
             // We check pixel color to be WHITE -> draw full cube
             if ((pixels[z * cubicmap.width + x].r == 255))
@@ -487,7 +594,7 @@ Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize, Model modelObj)
             // We check pixel color to be BLACK, we will only draw floor and roof
             //Solo si R es igual a 0
             //else if (COLOR_EQUAL(pixels[z * cubicmap.width + x], BLACK))
-            else if (pixels[z * cubicmap.width + x].r == 0)
+            else if (pixels[z * cubicmap.width + x].r == 0 || (pixels[z * cubicmap.width + x].r == 128))
             {
                 // Define top triangles (2 tris, 6 vertex --> v1-v2-v3, v1-v3-v4)
                 mapVertices[vCounter] = v1;
