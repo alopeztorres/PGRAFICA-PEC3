@@ -28,6 +28,7 @@ struct Prop
 {
     Model model;
     Texture2D text;
+    std::string name;
 };
 
 
@@ -42,16 +43,21 @@ void AddObj(ObjDetails* props)
     objList.push_back(props);
 }
 
-void AddProp(Prop* prop)
+void AddProp(char* modelLocation, char* textureLocation, std::string name)
 {
-    propList.push_back(prop);
+    Prop* lprop = new Prop;
+    lprop->model = LoadModel(modelLocation);
+    lprop->text = LoadTexture(textureLocation);
+    lprop->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = lprop->text;
+    lprop->name = name;
+    propList.push_back(lprop);
 }
 
 void RenderProps() 
 {
     for (int i = 0; i < objList.size(); i++)
     {
-        DrawModel(propList[objList[i]->modelType]->model, objList[i]->position, 0.02f, WHITE);        // Draw 3d model with texture
+        DrawModel(propList[objList[i]->modelType]->model, objList[i]->position, 0.025f, WHITE);        // Draw 3d model with texture
     }
 }
 //------------------------------------------------------------------------------------
@@ -103,17 +109,15 @@ int main(void)
     Vector3 mapPosition = { 0.0f, 0.0f, 0.0f };  // Set model position
 
     //LESSON 07: Loading the castle model Primer Objeto a Mostrar
-    Prop* castle = new Prop;
-    castle->model = LoadModel("MazeResources/models/obj/castle.obj");
-    castle->text = LoadTexture("MazeResources/models/obj/castle_diffuse.png");
-    castle->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = castle->text;
-    AddProp(castle);
+    //Prop* castle = new Prop;
+    //castle->model = LoadModel("MazeResources/models/obj/castle.obj");
+    //castle->text = LoadTexture("MazeResources/models/obj/castle_diffuse.png");
+    //castle->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = castle->text;
+    //Adding the props to a list
+    AddProp("MazeResources/models/obj/castle.obj", "MazeResources/models/obj/castle_diffuse.png", "castle");
+    AddProp("MazeResources/models/obj/house.obj", "MazeResources/models/obj/house_diffuse.png", "house");
+    AddProp("PAC3Resources/models/obj/door.obj", "PAC3Resources/models/obj/door_diffuse.png", "door");
 
-    Prop* house = new Prop;
-    house->model = LoadModel("MazeResources/models/obj/house.obj");
-    house->text = LoadTexture("MazeResources/models/obj/house_diffuse.png");
-    house->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = house->text;
-    AddProp(house);
     //Model modelCastle = LoadModel("MazeResources/models/obj/castle.obj");                 // Load model
     //Texture2D textureCastle = LoadTexture("MazeResources/models/obj/castle_diffuse.png"); // Load model texture
     //modelCastle.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = textureCastle;            // Set map diffuse texture
@@ -233,17 +237,7 @@ int main(void)
 Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
 {
 #define COLOR_EQUAL(col1, col2) ((col1.r == col2.r)&&(col1.g == col2.g)&&(col1.b == col2.b)&&(col1.a == col2.a))
-
-
     
-    //Model modelCastle = LoadModel("MazeResources/models/obj/castle.obj");                 // Load model
-    //Texture2D textureCastle = LoadTexture("MazeResources/models/obj/castle_diffuse.png"); // Load model texture
-    //modelCastle.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = textureCastle;            // Set map diffuse texture
-    //Vector3 modelposition = { 3.0f, 0.0f, 3.0f };                    // Set model position
-
-
-    
-
     Mesh mesh = { 0 };
 
     int numTex = 2;
@@ -405,6 +399,13 @@ Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
 
                 case 2:
                     objList->modelType = 1;
+                    objList->position = { (float)x,0,(float)z };
+                    objList->collider = false;
+                    flag = true;
+                    break;
+
+                case 3:
+                    objList->modelType = 2;
                     objList->position = { (float)x,0,(float)z };
                     objList->collider = false;
                     flag = true;
