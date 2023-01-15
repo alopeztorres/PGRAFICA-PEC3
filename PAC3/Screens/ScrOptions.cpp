@@ -1,6 +1,6 @@
 #include "raylib.h"
 #include "ScrOptions.h"
-//#include "../GameManager.h"
+#include "../GameManager.h"
 
 
 //----------------------------------------------------------------------------------
@@ -15,13 +15,13 @@ ScrOptions::ScrOptions()
 // Title Screen Initialization logic
 void ScrOptions::Init(void)
 {
-
+    gm = &GameManager::GetGameManager();
 }
 
 // Title Screen Update logic
 void ScrOptions::Update(void)
 {
-    GameManager* gm = &GameManager::GetGameManager();
+    //GameManager* gm = &GameManager::GetGameManager();
     if (IsKeyPressed(KEY_O))
     {
         gm->ChangeToScreen(GameScreen::TITLE);  // OPTIONS

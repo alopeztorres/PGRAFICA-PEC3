@@ -1,6 +1,6 @@
 #include "raylib.h"
 #include "ScrLogo.h"
-//#include "../GameManager.h"
+#include "../GameManager.h"
 
 void ScrLogo::Unload() 
 {
@@ -8,7 +8,8 @@ void ScrLogo::Unload()
 }
 
 void ScrLogo::Init() {
-    texture = &GameManager::GetGameManager().GetTextMngr().GetTexture(TextureType::Logo);
+    gm = &GameManager::GetGameManager();
+    texture = &gm->GetTextMngr().GetTexture(TextureType::Logo);
     position = Vector2{ GetScreenWidth()/2- (float)texture->width/2,GetScreenHeight()/2 - (float)texture->height/2 };
 }
 
@@ -17,7 +18,7 @@ void ScrLogo::Draw() {
 }
 
 void ScrLogo::Update() {
-    GameManager* gm = &GameManager::GetGameManager();
+    gm = &GameManager::GetGameManager();
     framesCounter++;
 
     if (framesCounter > 180)

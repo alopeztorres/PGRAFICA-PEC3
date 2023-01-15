@@ -1,7 +1,10 @@
 #pragma once
 
+class GameManager;
+
 class ScrOptions
 {
+	GameManager* gm;
 public:
 	ScrOptions();
 

@@ -2,7 +2,13 @@
 
 #include "raylib.h"
 
+#include "Screens/ScrLogo.h"  
+#include "Screens/ScrTitle.h" 
+#include "Screens/ScrOptions.h" 
 #include "Screens/ScrLoading.h"  
+#include "Screens/ScrEnding.h" 
+
+#include "AudioManager.h"
 
 #include <stdio.h>              // Standard input-output C library
 #include <stdlib.h>             // Memory management functions: malloc(), free()
@@ -13,8 +19,6 @@
 #include "GlobalDefines.h"
 
 using namespace std;
-
-#define TODELETE(x) if(x!=NULL) {delete x; x=NULL;}
 
 //----------------------------------------------------------------------------------
 // Local Variables Definition (local to this module)
@@ -28,6 +32,8 @@ struct ObjDetails
 	Vector3 position = Vector3{ 0,0,0 };
 	bool collider = false;
 	bool exit = false;
+	bool collectable = false;
+	bool hidden = false;
 };
 
 
@@ -54,9 +60,9 @@ public:
 	void UnloadGame(void);
 
 	static GameManager& GetGameManager();
-	//TexturesManager& GetTextMngr() { return TextMngr; }
-	//AudioManager& GetAudioMngr() { return AudioMngr; }
-	//Font& GetFont() { return font; }
+	TexturesManager& GetTextMngr() { return TextMngr; }
+	AudioManager& GetAudioMngr() { return AudioMngr; }
+	Font& GetFont() { return font; }
 
 
 	void GameSetup();
@@ -64,6 +70,7 @@ public:
 	void LoadLevel(int levelNumber);
 	void UnloadProps();
 	void UnloadObjects();
+	void PlayLevelMusic();
 
 	void ChangeToScreen(int screen);     // Change to screen, no transition effect
 
@@ -71,6 +78,8 @@ public:
 	vector<ObjDetails*> objList;
 
 	int currentLevel;
+	int currentOrbs = 0;
+	int orbsToCollect;
 
 	//Prototipo del metodo
 	Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize);
@@ -90,20 +99,33 @@ public:
 		propList.push_back(lprop);
 	}
 
+	void SetOrbsToCollectOnLevel() 
+	{
+		orbsToCollect = 0;
+		for (int i = 0; i < objList.size(); i++)
+		{
+			//Checking if collectable
+			if (objList[i]->collectable) // If its collectable will increase
+			{
+				orbsToCollect++;
+			}
+		}
+	}
+
 	void RenderProps()
 	{
 		for (int i = 0; i < objList.size(); i++)
 		{
-			DrawModel(propList[objList[i]->modelType]->model, objList[i]->position, 0.025f, WHITE);        // Draw 3d model with texture
+			if (!objList[i]->hidden)
+			{
+				DrawModel(propList[objList[i]->modelType]->model, objList[i]->position, 0.025f, WHITE);        // Draw 3d model with texture
+			}
 		}
 	}
 
 
 private:
 	/*
-	BehaviorState ghostState = CHASE;
-	Entidad player;
-	Entidad ghost;
 	int framesCounter = 0;
 	int score = 0;
 	int eatenDots = 0;
@@ -123,22 +145,17 @@ private:
 	Color* mapPixels;
 
 private:
-
 	static GameManager* GameMngr;
-	ScrLoading scLoading;
-	
-	GameScreen currentScreen;
 	Font font = { 0 };
-	/*
-	Texture2D texPlayer;
-	Tilemap tilemap;
-	Texture2D texTileset;
-	Texture2D texLives;
 	ScrLogo scLogo;
 	ScrTitle scTitle;
 	ScrOptions scOptions;
+	ScrLoading scLoading;
 	ScrEnding scEnding;
 	TexturesManager TextMngr = TexturesManager();
 	AudioManager AudioMngr = AudioManager();
-	*/
+
+
+	GameScreen currentScreen;
+	bool gameLoadedTextures;
 };

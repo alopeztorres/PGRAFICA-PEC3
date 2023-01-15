@@ -1,9 +1,12 @@
 #pragma once
 
+class GameManager;
+
 class ScrEnding
 {
 private:
 	bool playMusic = false;
+	GameManager* gm;
 public:
 	ScrEnding();
 	void SetPlayMusic(bool resp) { playMusic=resp; }

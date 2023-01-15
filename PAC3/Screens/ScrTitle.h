@@ -1,10 +1,13 @@
 #pragma once
 
+class GameManager;
+
 class ScrTitle
 {
 private:
 	Vector2 position;
 	Texture2D* texture;
+	GameManager* gm;
 
 public:
 	ScrTitle();

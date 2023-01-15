@@ -1,6 +1,6 @@
 #include "raylib.h"
 #include "ScrTitle.h"
-//#include "../GameManager.h"
+#include "../GameManager.h"
 
 
 //----------------------------------------------------------------------------------
@@ -15,18 +15,20 @@ ScrTitle::ScrTitle()
 // Title Screen Initialization logic
 void ScrTitle::Init(void)
 {
-    texture = &GameManager::GetGameManager().GetTextMngr().GetTexture(TextureType::PacmanLogo);
+    gm = &GameManager::GetGameManager();
+    texture = &GameManager::GetGameManager().GetTextMngr().GetTexture(TextureType::MazeLogo);
     position = Vector2{ GetScreenWidth() / 2 - (float)texture->width / 2, 200.0f };
 }
 
 // Title Screen Update logic
 void ScrTitle::Update(void)
 {
-    GameManager* gm = &GameManager::GetGameManager();
+    gm = &GameManager::GetGameManager();
     if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
     {
-        gm->ChangeToScreen(GameScreen::GAMEPLAY);  // GAMEPLAY
-        gm->GameSetup();  // GAMEPLAY
+        gm->ChangeToScreen(GameScreen::LOADING);  // GAMEPLAY
+        //gm->GameSetup();  // GAMEPLAY
+        //gm->LoadLevel(1);
     }
 
     if (IsKeyPressed(KEY_O))
@@ -35,6 +37,7 @@ void ScrTitle::Update(void)
     }
     gm->GetAudioMngr().PlayIntroMusic(true);
 
+    /*
     if (IsSoundPlaying(gm->GetAudioMngr().GameOver))
     {
         StopSound(gm->GetAudioMngr().GameOver);
@@ -43,6 +46,7 @@ void ScrTitle::Update(void)
     {
         StopSound(gm->GetAudioMngr().Victory);
     }
+    */
 }
 
 // Title Screen Draw logic

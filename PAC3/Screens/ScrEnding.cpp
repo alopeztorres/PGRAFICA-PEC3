@@ -1,6 +1,6 @@
 #include "raylib.h"
 #include "ScrEnding.h"
-//#include "../GameManager.h"
+#include "../GameManager.h"
 
 ScrEnding::ScrEnding()
 {
@@ -9,13 +9,13 @@ ScrEnding::ScrEnding()
 // Title Screen Initialization logic
 void ScrEnding::Init(void)
 {
-
+    gm = &GameManager::GetGameManager();
 }
 
 // Title Screen Update logic
 void ScrEnding::Update(void)
 {
-    GameManager* gm = &GameManager::GetGameManager();
+    //GameManager* gm = &GameManager::GetGameManager();
     if (IsKeyPressed(KEY_ENTER))
     {
         gm->ChangeToScreen(GameScreen::TITLE);  // GAMEPLAY
@@ -30,9 +30,10 @@ void ScrEnding::Update(void)
 // Title Screen Draw logic
 void ScrEnding::Draw(void)
 {
-    GameManager* gm = &GameManager::GetGameManager();
+    //GameManager* gm = &GameManager::GetGameManager();
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), BLACK);
-    const char* line1;
+    const char* line1 = "Linea1";
+    /*
     if (gm->GetEatenDots() >= 218)
     {
         line1 = "HAS GANADO :)";
@@ -55,7 +56,7 @@ void ScrEnding::Draw(void)
     {
         line1 = "ESTO ES UN BUG :(";
     }
-    
+    */
     const char* line2 = "Presiona Enter para Jugar";
     const char* line3 = "Presiona 'O' para Instrucciones";
 
