@@ -14,103 +14,9 @@ GameManager& GameManager::GetGameManager()
     return *GameMngr;
 }
 
-void GameManager::UnloadObjects()
-{
-    objList.clear();
-}
-
-void GameManager::UnloadProps()
-{
-    for (size_t i = 0; i < propList.size(); ++i)
-    {
-        UnloadModel(propList[i]->model);
-    }
-}
-
 GameManager::GameManager()
 {
 }
-
-void GameManager::PlayLevelMusic()
-{
-    if (currentLevel == 1) 
-    {
-        AudioMngr.PlayIntroMusic(false);
-        AudioMngr.PlayLevel2Music(false);
-        AudioMngr.PlayLevel3Music(false);
-        AudioMngr.PlayEndMusic(false);
-        AudioMngr.PlayLevel1Music(true);
-        AudioMngr.UpdateLevel1Music();
-    }
-    if (currentLevel == 2)
-    {
-        AudioMngr.PlayIntroMusic(false);
-        AudioMngr.PlayLevel1Music(false);
-        AudioMngr.PlayLevel3Music(false);
-        AudioMngr.PlayEndMusic(false);
-        AudioMngr.PlayLevel2Music(true);
-        AudioMngr.UpdateLevel2Music();
-    }
-    if (currentLevel == 3)
-    {
-        AudioMngr.PlayIntroMusic(false);
-        AudioMngr.PlayLevel2Music(false);
-        AudioMngr.PlayLevel1Music(false);
-        AudioMngr.PlayEndMusic(false);
-        AudioMngr.PlayLevel3Music(true);
-        AudioMngr.UpdateLevel3Music();
-    }
-}
-
-void GameManager::LoadLevel(int levelNumber)
-{
-    currentOrbs = 0;
-
-    camera.position = Vector3{ 1.f, 0.5f, 1.0f };  // Camera position
-    camera.target = Vector3{ 0.0f, 0.5f, 1.0f };      // Camera looking at point
-    camera.up = Vector3{ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
-    camera.fovy = 45.0f;                                // Camera field-of-view Y
-    camera.projection = CAMERA_PERSPECTIVE;             // Camera mode type
-
-    if (levelNumber == 1)
-    {
-        //AudioMngr.PlayLevel1Music(true);
-        // LESSON04: We load the texture used by the Cubicmap
-        imMap = LoadImage("PAC3Resources/map1.png");      // Load cubicmap image (RAM)
-    }
-
-    if (levelNumber == 2)
-    {
-        //AudioMngr.PlayLevel2Music(true);
-        // LESSON04: We load the texture used by the Cubicmap
-        imMap = LoadImage("PAC3Resources/cubicmap.png");      // Load cubicmap image (RAM)
-    }
-
-    cubicmap = LoadTextureFromImage(imMap);       // Convert image to texture to display (VRAM)
-
-    mesh = GenMeshCubicmapV2(imMap, Vector3{ 1.0f, 1.0f, 1.0f });
-    model = LoadModelFromMesh(mesh);
-
-    // NOTE: By default each cube is mapped to one part of texture atlas
-    texture = LoadTexture("PAC3Resources/cubemap_atlasFull.png");    // Load map texture
-    model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;             // Set map diffuse texture
-
-    // Get map image data to be used for collision detection
-    mapPixels = LoadImageColors(imMap);
-    UnloadImage(imMap);             // Unload image from RAM
-
-    mapPosition = { 0.0f, 0.0f, 0.0f };  // Set model position
-
-
-
-    BoundingBox bounds = GetMeshBoundingBox(model.meshes[0]);   // Set model bounds
-
-    // LESSON05: Set a free camera mode
-    SetCameraMode(camera, CAMERA_FIRST_PERSON);
-    SetOrbsToCollectOnLevel();
-    gameLoadedTextures = true;
-}
-
 
 void GameManager::InitGame()
 {
@@ -137,11 +43,12 @@ void GameManager::InitGame()
 
     // Initialization
     //--------------------------------------------------------------------------------------
-    //Adding the props to a list
-    AddProp("PAC3Resources/models/obj/castle.obj", "PAC3Resources/models/obj/castle_diffuse.png", "castle");
-    AddProp("PAC3Resources/models/obj/house.obj", "PAC3Resources/models/obj/house_diffuse.png", "house");
-    AddProp("PAC3Resources/models/obj/door.obj", "PAC3Resources/models/obj/door_diffuse.png", "door");
-    AddProp("PAC3Resources/models/obj/orb.obj", "PAC3Resources/models/obj/orb_diffuse.png", "orb");
+    //Adding the props to a list, It is important to follow this specific order in order to make it work with GenMeshCubicMapV2
+    AddProp("PAC3Resources/models/obj/castle.obj", "PAC3Resources/models/obj/castle_diffuse.png", "castle"); //Asset with Collision
+    AddProp("PAC3Resources/models/obj/turret.obj", "PAC3Resources/models/obj/turret_diffuse.png", "turret"); //Asset with Collision
+    AddProp("PAC3Resources/models/obj/plane.obj", "PAC3Resources/models/obj/plane_diffuse.png", "plane"); //Asset with Collision
+    AddProp("PAC3Resources/models/obj/door.obj", "PAC3Resources/models/obj/door_diffuse.png", "door"); //Importan Exit Point
+    AddProp("PAC3Resources/models/obj/orb.obj", "PAC3Resources/models/obj/orb_diffuse.png", "orb"); //Item to Obtain
 
     currentScreen = LOGO;
 
@@ -149,25 +56,10 @@ void GameManager::InitGame()
 
     gameLoadedTextures = false;
     currentLevel = 1;
-    //orbsToCollect = 4;
-    SetOrbsToCollectOnLevel();
-    //const int MaxObjs = 1;
-
-    // Prop objs[] = { MaxObjs };
-    // Prop objs = Prop();
-     //Prop objs[] = { LoadModel("MazeResources/models/obj/castle.obj"),LoadTexture("MazeResources/models/obj/castle_diffuse.png") };
-     //objs.model = LoadModel("MazeResources/models/obj/castle.obj");                 // Load model
-     //objs.text = LoadTexture("MazeResources/models/obj/castle_diffuse.png"); // Load model texture
-
-    //InitWindow(screenWidth, screenHeight, "CHALLENGE 03: FIRST PERSON MAZE");
-
-    // LESSON 05: Define the camera to look into our 3d world (Next chapter will be explain more thoroughly)
-    
-
+    SetOrbsToCollectOnLevel(); //Defines the ammount of orbs to collect based on Image for the level
 
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
 
-    GameSetup();
     LoadLevel(currentLevel);
 }
 //-------------------------------------------------------
@@ -177,6 +69,7 @@ void GameManager::UpdateFrame(int secondsPassed)
     //----------------------------------------------------------------------------------
 
     AudioMngr.UpdateIntroMusic();
+    AudioMngr.UpdateEndMusic();
 
     switch (currentScreen)
     {
@@ -245,9 +138,10 @@ void GameManager::UpdateFrame(int secondsPassed)
                         })))
                 {
                     // Collision detected, reset camera position
-                    ChangeToScreen(GameScreen::LOADING);  // GAMEPLAY
-                    UnloadObjects();
-                    scLoading.Reload();
+                    
+
+                    AudioMngr.PlaySoundEffect(SoundType::Dead);
+                    ChangeToScreen(GameScreen::ENDING);  // GAMEOVER
                 }
             }
         }
@@ -276,6 +170,7 @@ void GameManager::UpdateFrame(int secondsPassed)
                 // Collision detected, collect Object
                 objList[i]->hidden = true;
                 currentOrbs++;
+                AudioMngr.PlaySoundEffect(SoundType::Collectable);
             }
 
             //Reaching Ending Level Condition
@@ -288,18 +183,28 @@ void GameManager::UpdateFrame(int secondsPassed)
                 if (currentOrbs >= orbsToCollect)
                 {
                     // Collision detected, reset camera position
-                    ChangeToScreen(GameScreen::LOADING);  // GAMEPLAY
+                    ChangeToScreen(GameScreen::LOADING);  // LOADING
                     if (currentLevel == 1)
+                    {
                         currentLevel = 2;
-                    else
-                        currentLevel = 1;
+                    }
+                    else if (currentLevel == 2)
+                    {
+                        currentLevel = 3;
+                    }
+                    else if (currentLevel == 3)
+                    {
+                        currentLevel = 4;
+                    }
+                    //Unload Level Resources to allow to Load New Ones on the Next Level
                     UnloadImageColors(mapPixels);   // Unload color array
                     UnloadTexture(cubicmap);        // Unload cubicmap texture
                     UnloadTexture(texture);         // Unload map texture
                     UnloadModel(model);
-                    //UnloadProps();
                     UnloadObjects();
                     scLoading.Reload();
+                    AudioMngr.PlaySoundEffect(SoundType::Door);
+                    gameLoadedTextures = false;
                 }
             }
 
@@ -341,113 +246,41 @@ void GameManager::DrawFrame(void)
         // LESSON04: Draw maze map
         DrawModel(model, mapPosition, 1.0f, WHITE);
 
-        // LESSON07: Draw Model
-        //DrawModel(modelCastle, modelposition, 0.02f, WHITE);        // Draw 3d model with texture
+        //Render the props
         RenderProps();
 
         EndMode3D();
 
-        // LESSON05: Instructions to move the camera3D.
-        DrawText("First person camera default controls:", 20, 20, 10, WHITE);
-        DrawText("- Move with keys: W, A, S, D", 40, 40, 10, WHITE);
-        DrawText("- Mouse move to look around", 40, 60, 10, WHITE);
-        string tline1 = "Orbs Collected: ";
-        string tline2 = std::to_string(currentOrbs);
-        DrawText((tline1 + tline2).c_str(), 40, 80, 10, WHITE);
-        //for (int i = 0; i < objList.size(); i++)
-        //{
-         //   DrawText(std::to_string(objList[i]->modelType).c_str(), 40, 80 + (i * 20), 10, WHITE);
-        //}
-
-
+        string tline = "Orbs Collected: ";
+        tline+= std::to_string(currentOrbs);
+        tline += "/";
+        tline += std::to_string(orbsToCollect);
+        DrawText((tline).c_str(), 40, 20, 20, WHITE);
 
     }break;
     case ENDING: scEnding.Draw(); break;
     default: break;
 
-    /*
-    switch (currentScreen)
-    {
-    case LOGO: scLogo.Draw(); break;
-    case TITLE: scTitle.Draw(); break;
-    case OPTIONS: scOptions.Draw(); break;
-    case GAMEPLAY:
-    {
-        string str = "Score: ";
-        str.append(to_string(score));
-        DrawText(str.c_str(), 40, 25, 25, WHITE);
-
-        //Eaten Dots Debug
-        //str = "eaten dots: ";
-        //str.append(to_string(eatenDots));
-        //DrawText(str.c_str(), 400, 25, 25, WHITE);
-
-
-            for (size_t i = 1; i < lives; i++)
-            {
-                DrawTextureRec(texLives, { 0,0,(float)texLives.width,(float)texLives.height },
-                    { ((GetScreenWidth() - (float)texLives.width * 4)) + ((float)texLives.width * i)+ ((float)texLives.width * (2-lives)), 25.f }, WHITE);
-            }
-
-        DrawTilemap(tilemap, texTileset);
-        player.Drawing(false);
-        ghost.Drawing(true);
-    }
-        break;
-    case ENDING: scEnding.Draw(); break;
-    default: break;
-    }
-    */
     }
     EndDrawing();
-}
-
-void GameManager::GameSetup()
-{
-    gameLoadedTextures = true;
-    /*
-    tilemap = LoadTilemap("PacmanResources/tilemap.txt", "PacmanResources/tilemap_colliders.txt", "PacmanResources/tilemap_objects.txt");
-    tilemap.tileSize = 32;
-    tilemap.position = Vector2{ (float)offsetX,(float)offsetY };
-
-    player.SetTexture(&TextMngr.GetTexture(TextureType::Pacman));
-    ghost.SetTexture(&TextMngr.GetTexture(TextureType::Ghost));
-    player.Init(13, 17, false);
-    ghost.Init(13, 9, true);
-    lives = 3;
-    started = false;
-    isDead = false;
-    score = 0;
-    eatenDots = 0;
-
-    scEnding.SetPlayMusic(false);
-
-    AudioMngr.PlaySoundEffect(SoundType::GameStart);
-    AudioMngr.PlaySirenMusic(true);
-    */
 }
 
 //-------------------------------------------------------
 
 void GameManager::UnloadGame(void)
 {
-    /*
     switch (currentScreen)
     {
     case LOGO: scLogo.Unload(); break;
     case TITLE: scTitle.Unload(); break;
     case ENDING: scEnding.Unload(); break;
     case OPTIONS: scOptions.Unload(); break;
+    case LOADING: scLoading.Unload(); break;
     default: break;
     }
-    // Unload player and tileset textures
-    UnloadTexture(texPlayer);       // Unload player texture
-    UnloadTexture(texTileset);      // Unload tileset texture
-
-    // 
 
     CloseAudioDevice();     // Close audio context
-    */
+    
 
     if (gameLoadedTextures)
     {
@@ -464,14 +297,150 @@ void GameManager::UnloadGame(void)
     //--------------------------------------------------------------------------------------
 }
 
+void GameManager::UnloadObjects()
+{
+    objList.clear();
+}
 
-//----------------------------------------------------------------------------------
-// Module specific Functions Definition
-//----------------------------------------------------------------------------------
+void GameManager::UnloadProps()
+{
+    for (size_t i = 0; i < propList.size(); ++i)
+    {
+        UnloadModel(propList[i]->model);
+    }
+}
+
+void GameManager::PlayLevelMusic()
+{
+    if (currentLevel == 1)
+    {
+        AudioMngr.PlayIntroMusic(false);
+        AudioMngr.PlayLevel2Music(false);
+        AudioMngr.PlayLevel3Music(false);
+        AudioMngr.PlayEndMusic(false);
+        AudioMngr.PlayLevel1Music(true);
+        AudioMngr.UpdateLevel1Music();
+    }
+    if (currentLevel == 2)
+    {
+        AudioMngr.PlayIntroMusic(false);
+        AudioMngr.PlayLevel1Music(false);
+        AudioMngr.PlayLevel3Music(false);
+        AudioMngr.PlayEndMusic(false);
+        AudioMngr.PlayLevel2Music(true);
+        AudioMngr.UpdateLevel2Music();
+    }
+    if (currentLevel == 3)
+    {
+        AudioMngr.PlayIntroMusic(false);
+        AudioMngr.PlayLevel2Music(false);
+        AudioMngr.PlayLevel1Music(false);
+        AudioMngr.PlayEndMusic(false);
+        AudioMngr.PlayLevel3Music(true);
+        AudioMngr.UpdateLevel3Music();
+    }
+}
+
+void GameManager::LoadLevel(int levelNumber)
+{
+    currentOrbs = 0;
+
+    camera.position = Vector3{ 1.f, 0.5f, 1.0f };  // Camera position
+    camera.target = Vector3{ 0.0f, 0.5f, 1.0f };      // Camera looking at point
+    camera.up = Vector3{ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
+    camera.fovy = 45.0f;                                // Camera field-of-view Y
+    camera.projection = CAMERA_PERSPECTIVE;             // Camera mode type
+
+    if (levelNumber == 1)
+    {
+        // LESSON04: We load the texture used by the Cubicmap
+        imMap = LoadImage("PAC3Resources/map1.png");      // Load cubicmap image (RAM)
+    }
+
+    if (levelNumber == 2)
+    {
+        // LESSON04: We load the texture used by the Cubicmap
+        imMap = LoadImage("PAC3Resources/map2.png");      // Load cubicmap image (RAM)
+    }
+
+
+    if (levelNumber == 3)
+    {
+        // LESSON04: We load the texture used by the Cubicmap
+        imMap = LoadImage("PAC3Resources/map3.png");      // Load cubicmap image (RAM)
+    }
+
+    if (levelNumber < 4)
+    {
+        cubicmap = LoadTextureFromImage(imMap);       // Convert image to texture to display (VRAM)
+
+        mesh = GenMeshCubicmapV2(imMap, Vector3{ 1.0f, 1.0f, 1.0f });
+        model = LoadModelFromMesh(mesh);
+
+        // NOTE: By default each cube is mapped to one part of texture atlas
+        texture = LoadTexture("PAC3Resources/cubemap_atlasFull.png");    // Load map texture
+        model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;             // Set map diffuse texture
+
+        // Get map image data to be used for collision detection
+        mapPixels = LoadImageColors(imMap);
+        UnloadImage(imMap);             // Unload image from RAM
+
+        mapPosition = { 0.0f, 0.0f, 0.0f };  // Set model position
+
+
+
+        BoundingBox bounds = GetMeshBoundingBox(model.meshes[0]);   // Set model bounds
+
+        // LESSON05: Set a free camera mode
+        SetCameraMode(camera, CAMERA_FIRST_PERSON);
+        SetOrbsToCollectOnLevel();
+        gameLoadedTextures = true;
+    }
+}
+
+void GameManager::AddObj(ObjDetails* props)
+{
+    objList.push_back(props);
+}
+
+void GameManager::AddProp(char* modelLocation, char* textureLocation, std::string name)
+{
+    Prop* lprop = new Prop;
+    lprop->model = LoadModel(modelLocation);
+    lprop->text = LoadTexture(textureLocation);
+    lprop->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = lprop->text;
+    lprop->name = name;
+    propList.push_back(lprop);
+}
+
+void GameManager::SetOrbsToCollectOnLevel()
+{
+    orbsToCollect = 0;
+    for (int i = 0; i < objList.size(); i++)
+    {
+        //Checking if collectable
+        if (objList[i]->collectable) // If its collectable will increase
+        {
+            orbsToCollect++;
+        }
+    }
+}
+
+void GameManager::RenderProps()
+{
+    for (int i = 0; i < objList.size(); i++)
+    {
+        if (!objList[i]->hidden)
+        {
+            DrawModel(propList[objList[i]->modelType]->model, objList[i]->position, 0.025f, WHITE);        // Draw 3d model with texture
+        }
+    }
+}
+
 // Change to next screen, no transition
 void GameManager::ChangeToScreen(int screen)
 {
-    /*
+    
     // Unload current screen
     switch (currentScreen)
     {
@@ -479,6 +448,7 @@ void GameManager::ChangeToScreen(int screen)
     case TITLE: scTitle.Unload(); break;
     case ENDING: scEnding.Unload(); break;
     case OPTIONS: scOptions.Unload(); break;
+    case LOADING: scLoading.Unload(); break;
     default: break;
     }
 
@@ -489,11 +459,10 @@ void GameManager::ChangeToScreen(int screen)
     case TITLE: scTitle.Init(); break;
     case ENDING: scEnding.Init(); break;
     case OPTIONS: scOptions.Init(); break;
+    case LOADING: scLoading.Init(); break;
     default: break;
     }
-    */
     currentScreen = (GameScreen)screen;
-    
 }
 
 // Generate a cubes mesh from pixel data
@@ -503,9 +472,6 @@ Mesh GameManager::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
 #define COLOR_EQUAL(col1, col2) ((col1.r == col2.r)&&(col1.g == col2.g)&&(col1.b == col2.b)&&(col1.a == col2.a))
 
     Mesh mesh = { 0 };
-
-    int numTex = 2;
-    int texAmount = 2;
 
     Color* pixels = LoadImageColors(cubicmap);
 
@@ -543,18 +509,6 @@ Mesh GameManager::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
         float height;
     } RectangleF;
 
-    float calc1 = (float)0.5f / texAmount;
-    float calc2 = (texAmount - 1) - (numTex % texAmount);
-
-    /*
-    RectangleF rightTexUV = {calc2*0.5f, calc2 * 0.5f, calc1, calc1 };
-    RectangleF leftTexUV = { calc1+ calc2 * 0.5f, calc2 * 0.5f, calc1, calc1 };
-    RectangleF frontTexUV = { calc2 * 0.5f, calc2 * 0.5f, calc1, calc1 };
-    RectangleF backTexUV = { calc1, calc2 * 0.5f, calc1, calc1 };
-    RectangleF topTexUV = { calc2 * 0.5f, calc1+ calc2 * 0.5f, calc1, calc1 };
-    RectangleF bottomTexUV = { calc1+ calc2 * 0.5f, calc1+ calc2 * 0.5f, calc1, calc1 };
-    */
-
     RectangleF rightTexUV = { 0.0f, 0.0f, 0.25f, 0.25f };
     RectangleF leftTexUV = { 0.25f, 0.0f, 0.25f, 0.25f };
     RectangleF frontTexUV = { 0.0f, 0.0f, 0.25f, 0.25f };
@@ -562,34 +516,6 @@ Mesh GameManager::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
     RectangleF topTexUV = { 0.0f, 0.25f, 0.25f, 0.25f };
     RectangleF bottomTexUV = { 0.25f, 0.25f, 0.25f, 0.25f };
 
-
-    /*
-    //si es b1
-    rightTexUV = { 0.5f, 0.0f, 0.25f, 0.25f };
-    leftTexUV = { 0.75f, 0.0f, 0.25f, 0.25f };
-    frontTexUV = { 0.5f, 0.0f, 0.25f, 0.25f };
-    backTexUV = { 0.75f, 0.0f, 0.25f, 0.25f };
-    topTexUV = { 0.5f, 0.25f, 0.25f, 0.25f };
-    bottomTexUV = { 0.75f, 0.25f, 0.25f, 0.25f };
-
-
-    // si es b2
-    rightTexUV = { 0.5f, 0.5f, 0.25f, 0.25f };
-    leftTexUV = { 0.75f, 0.5f, 0.25f, 0.25f };
-    frontTexUV = { 0.5f, 0.5f, 0.25f, 0.25f };
-    backTexUV = { 0.75f, 0.5f, 0.25f, 0.25f };
-    topTexUV = { 0.5f, 0.75f, 0.25f, 0.25f };
-    bottomTexUV = { 0.75f, 0.75f, 0.25f, 0.25f };
-
-
-    // si es b3
-    rightTexUV = { 0.0f, 0.5f, 0.25f, 0.25f };
-    leftTexUV = { 0.25f, 0.5f, 0.25f, 0.25f };
-    frontTexUV = { 0.0f, 0.5f, 0.25f, 0.25f };
-    backTexUV = { 0.25f, 0.5f, 0.25f, 0.25f };
-    topTexUV = { 0.0f, 0.75f, 0.25f, 0.25f };
-    bottomTexUV = { 0.25f, 0.75f, 0.25f, 0.25f };
-    */
 
     for (int z = 0; z < mapHeight; ++z)
     {
@@ -664,7 +590,7 @@ Mesh GameManager::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
                 case 2:
                     objList->modelType = 1;
                     objList->position = { (float)x,0,(float)z };
-                    objList->collider = false;
+                    objList->collider = true;
                     flag = true;
                     break;
 
@@ -672,12 +598,19 @@ Mesh GameManager::GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize)
                     objList->modelType = 2;
                     objList->position = { (float)x,0,(float)z };
                     objList->collider = true;
-                    objList->exit = true;
                     flag = true;
                     break;
 
                 case 4:
                     objList->modelType = 3;
+                    objList->position = { (float)x,0,(float)z };
+                    objList->collider = true;
+                    objList->exit = true;
+                    flag = true;
+                    break;
+
+                case 5:
+                    objList->modelType = 4;
                     objList->position = { (float)x,0,(float)z };
                     objList->collider = false;
                     objList->exit = false;

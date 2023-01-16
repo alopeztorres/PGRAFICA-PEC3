@@ -25,12 +25,7 @@ void AudioManager::InitAudioFiles()
 
 
     SetMusicVolume(IntroMusic, 1.0f);
-    PlayIntroMusic(true);
-
-    //SetMusicVolume(Level1, 1.0f);
-    //PlayLevel1Music(true);
-
-
+    PlayIntroMusic(true); 
 }
 
 void AudioManager::PlayIntroMusic(bool activate)

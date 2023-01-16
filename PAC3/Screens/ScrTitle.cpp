@@ -23,12 +23,12 @@ void ScrTitle::Init(void)
 // Title Screen Update logic
 void ScrTitle::Update(void)
 {
-    gm = &GameManager::GetGameManager();
+    //gm = &GameManager::GetGameManager();
     if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
     {
-        gm->ChangeToScreen(GameScreen::LOADING);  // GAMEPLAY
-        //gm->GameSetup();  // GAMEPLAY
-        //gm->LoadLevel(1);
+        gm->ChangeToScreen(GameScreen::LOADING);  // LOADING SCREEN
+        gm->UnloadObjects();
+        gm->scLoading.Reload();
     }
 
     if (IsKeyPressed(KEY_O))
@@ -36,17 +36,7 @@ void ScrTitle::Update(void)
         gm->ChangeToScreen(GameScreen::OPTIONS);  // OPTIONS
     }
     gm->GetAudioMngr().PlayIntroMusic(true);
-
-    /*
-    if (IsSoundPlaying(gm->GetAudioMngr().GameOver))
-    {
-        StopSound(gm->GetAudioMngr().GameOver);
-    }    
-    if (IsSoundPlaying(gm->GetAudioMngr().Victory))
-    {
-        StopSound(gm->GetAudioMngr().Victory);
-    }
-    */
+    gm->GetAudioMngr().PlayEndMusic(false);
 }
 
 // Title Screen Draw logic

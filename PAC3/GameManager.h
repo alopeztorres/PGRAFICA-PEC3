@@ -51,6 +51,13 @@ struct Prop
 class GameManager
 {
 public:
+	vector<Prop*> propList;
+	vector<ObjDetails*> objList;
+	ScrLoading scLoading;
+
+	int currentLevel;
+	int currentOrbs = 0;
+	int orbsToCollect;
 
 	GameManager();
 
@@ -64,75 +71,19 @@ public:
 	AudioManager& GetAudioMngr() { return AudioMngr; }
 	Font& GetFont() { return font; }
 
-
-	void GameSetup();
-
 	void LoadLevel(int levelNumber);
 	void UnloadProps();
 	void UnloadObjects();
 	void PlayLevelMusic();
-
+	void AddObj(ObjDetails* props);
+	void AddProp(char* modelLocation, char* textureLocation, std::string name);
+	void SetOrbsToCollectOnLevel();
+	void RenderProps();
 	void ChangeToScreen(int screen);     // Change to screen, no transition effect
-
-	vector<Prop*> propList;
-	vector<ObjDetails*> objList;
-
-	int currentLevel;
-	int currentOrbs = 0;
-	int orbsToCollect;
-
-	//Prototipo del metodo
 	Mesh GenMeshCubicmapV2(Image cubicmap, Vector3 cubeSize);
 
-	void AddObj(ObjDetails* props)
-	{
-		objList.push_back(props);
-	}
-
-	void AddProp(char* modelLocation, char* textureLocation, std::string name)
-	{
-		Prop* lprop = new Prop;
-		lprop->model = LoadModel(modelLocation);
-		lprop->text = LoadTexture(textureLocation);
-		lprop->model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = lprop->text;
-		lprop->name = name;
-		propList.push_back(lprop);
-	}
-
-	void SetOrbsToCollectOnLevel() 
-	{
-		orbsToCollect = 0;
-		for (int i = 0; i < objList.size(); i++)
-		{
-			//Checking if collectable
-			if (objList[i]->collectable) // If its collectable will increase
-			{
-				orbsToCollect++;
-			}
-		}
-	}
-
-	void RenderProps()
-	{
-		for (int i = 0; i < objList.size(); i++)
-		{
-			if (!objList[i]->hidden)
-			{
-				DrawModel(propList[objList[i]->modelType]->model, objList[i]->position, 0.025f, WHITE);        // Draw 3d model with texture
-			}
-		}
-	}
-
-
+	
 private:
-	/*
-	int framesCounter = 0;
-	int score = 0;
-	int eatenDots = 0;
-	int lives = 3;
-	bool started;
-	bool isDead;
-	*/
 	Camera3D camera = { 0 };
 	Image imMap;
 	Texture2D cubicmap;
@@ -150,7 +101,7 @@ private:
 	ScrLogo scLogo;
 	ScrTitle scTitle;
 	ScrOptions scOptions;
-	ScrLoading scLoading;
+	
 	ScrEnding scEnding;
 	TexturesManager TextMngr = TexturesManager();
 	AudioManager AudioMngr = AudioManager();
